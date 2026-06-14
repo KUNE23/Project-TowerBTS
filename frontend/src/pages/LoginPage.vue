@@ -1,59 +1,62 @@
 <template>
-  <main class="flex min-h-screen items-center justify-center bg-canvas px-4 py-10">
-    <section class="w-full max-w-sm rounded-md border border-hairline bg-white p-6 shadow-sm">
-      <div class="mb-8 flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-white">
-          <RadioTower class="h-5 w-5" />
-        </div>
-        <div>
-          <h1 class="text-xl font-semibold text-primary">BTSense</h1>
-          <p class="text-sm text-mute">Tower sensor monitoring</p>
-        </div>
+  <AuthLayout>
+    <section class="w-full max-w-[420px] rounded-md border border-hairline bg-white p-8 shadow-sm">
+      <div class="mb-8 text-center lg:hidden">
+        <p class="text-3xl font-semibold tracking-[-0.03em]">BTSense</p>
+        <p class="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-mute">Network Operations</p>
       </div>
 
-      <form class="space-y-4" @submit.prevent="goToDashboard">
-        <label class="block">
-          <span class="mb-1 block text-sm font-medium text-body">Email</span>
-          <input
-            v-model="email"
-            type="email"
-            class="h-11 w-full rounded-sm border border-hairline px-3 text-sm outline-none transition focus:border-blueInfo focus:ring-2 focus:ring-blueInfo/10"
-            placeholder="technician@btsense.local"
-          />
-        </label>
+      <div class="mb-7 text-center">
+        <h1 class="text-2xl font-semibold tracking-[-0.02em] text-primary">Masuk ke Dashboard</h1>
+        <p class="mt-2 text-sm text-body">Pantau suhu, fan, kabel, dan pintu secara realtime.</p>
+      </div>
 
-        <label class="block">
-          <span class="mb-1 block text-sm font-medium text-body">Password</span>
-          <input
-            v-model="password"
-            type="password"
-            class="h-11 w-full rounded-sm border border-hairline px-3 text-sm outline-none transition focus:border-blueInfo focus:ring-2 focus:ring-blueInfo/10"
-            placeholder="password"
-          />
-        </label>
+      <form class="space-y-4" @submit.prevent="submit">
+        <BaseInput v-model="form.email" label="Email" type="email" placeholder="teknisi@btsense.com" />
+        <BaseInput v-model="form.password" label="Password" type="password" placeholder="••••••••" />
 
-        <button
-          type="submit"
-          class="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white transition hover:bg-body"
-        >
-          <LogIn class="h-4 w-4" />
-          Login
-        </button>
+        <div class="flex items-center justify-between gap-4 text-sm text-body">
+          <label class="flex items-center gap-2">
+            <input v-model="form.remember" class="h-4 w-4 rounded-sm border-hairline" type="checkbox" />
+            Remember me
+          </label>
+          <button class="text-primary hover:text-purple" type="button">Forgot password?</button>
+        </div>
+
+        <BaseButton class="w-full" label="Login" type="submit" :loading="auth.state.loading" />
+
+        <p v-if="auth.state.error" class="text-sm text-red">{{ auth.state.error }}</p>
       </form>
+
+      <p class="mt-8 text-center text-xs text-mute">Monitoring Sensor Tower BTS Berbasis IoT</p>
     </section>
-  </main>
+  </AuthLayout>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { reactive } from "vue";
 import { useRouter } from "vue-router";
-import { LogIn, RadioTower } from "@lucide/vue";
+import AuthLayout from "../layouts/AuthLayout.vue";
+import BaseButton from "../components/common/BaseButton.vue";
+import BaseInput from "../components/common/BaseInput.vue";
+import { useAuthStore } from "../stores/authStore.js";
 
 const router = useRouter();
-const email = ref("");
-const password = ref("");
+const auth = useAuthStore();
 
-const goToDashboard = () => {
+const form = reactive({
+  email: "teknisi@btsense.com",
+  password: "password",
+  remember: false,
+});
+
+const submit = async () => {
+  await auth.login({
+    email: form.email,
+    password: form.password,
+    remember: form.remember,
+  });
+
   router.push("/dashboard");
 };
 </script>

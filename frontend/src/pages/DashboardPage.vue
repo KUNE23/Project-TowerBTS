@@ -1,230 +1,180 @@
 <template>
-  <main class="min-h-screen bg-[#f7f8fa] text-primary">
-    <header class="border-b border-hairline bg-white">
-      <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-white">
-            <RadioTower class="h-5 w-5" />
-          </div>
-          <div>
-            <h1 class="text-lg font-semibold">BTSense</h1>
-            <p class="text-sm text-mute">Simulasi Tower BTS Jakarta Barat</p>
+  <main class="min-h-screen bg-[#f4f7fa] text-primary">
+    <AppNavbar
+      :user="auth.state.user"
+      :initials="auth.initials.value"
+      :is-supervisor="auth.isSupervisor.value"
+      @export="openExport"
+      @edit-profile="showProfileModal = true"
+      @logout="handleLogout"
+    />
+
+    <AlertToast :toasts="dashboard.state.toasts" />
+
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <section class="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-[0.12em] text-body">Live Monitoring</p>
+          <h1 class="mt-2 text-2xl font-semibold tracking-[-0.02em] text-primary sm:text-3xl">Dashboard Sensor BTS</h1>
+          <p class="mt-2 text-base text-body">Pantau suhu, fan, kabel, dan pintu secara realtime.</p>
+          <div class="mt-5 flex flex-wrap items-center gap-3">
+            <span class="border border-hairline bg-[#fbfafa] px-2 py-1 text-xs text-body">
+              Device: {{ dashboard.state.device.code }}
+            </span>
+            <StatusBadge label="System Online" tone="purple" dot />
+            <span class="text-sm text-body">Last update: {{ dashboard.latestUpdate.value }}</span>
           </div>
         </div>
-
-        <div class="flex items-center gap-3">
-          <div class="flex h-9 items-center gap-2 rounded-md border border-hairline bg-white px-3 text-sm">
-            <Wifi class="h-4 w-4 text-green" />
-            <span>Online</span>
-          </div>
-          <button class="flex h-9 items-center gap-2 rounded-md bg-blueInfo px-3 text-sm font-medium text-white">
-            <FileDown class="h-4 w-4" />
-            Export PDF
-          </button>
-          <button class="flex h-9 items-center gap-2 rounded-md border border-hairline bg-white px-3 text-sm">
-            <UserCircle class="h-4 w-4" />
-            Supervisor
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <div class="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_340px] lg:px-8">
-      <section class="space-y-6">
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          <article
-            v-for="card in statusCards"
-            :key="card.label"
-            class="rounded-md border border-hairline bg-white p-4 shadow-sm"
-          >
-            <div class="mb-4 flex items-center justify-between">
-              <p class="text-sm text-mute">{{ card.label }}</p>
-              <component :is="card.icon" class="h-5 w-5" :class="card.iconColor" />
-            </div>
-            <p class="text-2xl font-semibold">{{ card.value }}</p>
-            <p class="mt-1 text-sm" :class="card.statusColor">{{ card.status }}</p>
-          </article>
-        </div>
-
-        <section class="rounded-md border border-hairline bg-white shadow-sm">
-          <div class="border-b border-hairline px-4 py-3">
-            <h2 class="text-base font-semibold">Realtime Sensor Status</h2>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-hairline text-sm">
-              <thead class="bg-[#f2f4f7] text-left text-mute">
-                <tr>
-                  <th class="px-4 py-3 font-medium">Waktu</th>
-                  <th class="px-4 py-3 font-medium">Device</th>
-                  <th class="px-4 py-3 font-medium">Suhu</th>
-                  <th class="px-4 py-3 font-medium">Fan</th>
-                  <th class="px-4 py-3 font-medium">RPM</th>
-                  <th class="px-4 py-3 font-medium">Kabel</th>
-                  <th class="px-4 py-3 font-medium">Pintu</th>
-                  <th class="px-4 py-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-hairline">
-                <tr v-for="row in sensorRows" :key="row.time">
-                  <td class="whitespace-nowrap px-4 py-3">{{ row.time }}</td>
-                  <td class="whitespace-nowrap px-4 py-3">{{ row.device }}</td>
-                  <td class="whitespace-nowrap px-4 py-3">{{ row.temperature }}</td>
-                  <td class="whitespace-nowrap px-4 py-3">{{ row.fan }}</td>
-                  <td class="whitespace-nowrap px-4 py-3">{{ row.rpm }}</td>
-                  <td class="whitespace-nowrap px-4 py-3">{{ row.cable }}</td>
-                  <td class="whitespace-nowrap px-4 py-3">{{ row.door }}</td>
-                  <td class="whitespace-nowrap px-4 py-3">
-                    <span class="rounded-sm px-2 py-1 text-xs font-medium" :class="row.badgeClass">
-                      {{ row.status }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
       </section>
 
-      <aside class="space-y-6">
-        <section class="rounded-md border border-hairline bg-white shadow-sm">
-          <div class="flex items-center gap-2 border-b border-hairline px-4 py-3">
-            <Bell class="h-5 w-5 text-orange" />
-            <h2 class="text-base font-semibold">Alert Terbaru</h2>
-          </div>
-          <div class="divide-y divide-hairline">
-            <article v-for="alert in alerts" :key="alert.message" class="p-4">
-              <div class="mb-2 flex items-center justify-between gap-3">
-                <p class="font-medium">{{ alert.type }}</p>
-                <span class="rounded-sm px-2 py-1 text-xs font-medium" :class="alert.badgeClass">
-                  {{ alert.severity }}
-                </span>
-              </div>
-              <p class="text-sm text-body">{{ alert.message }}</p>
-              <p class="mt-2 text-xs text-mute">{{ alert.time }}</p>
-            </article>
-          </div>
-        </section>
-      </aside>
+      <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <SensorCard
+          v-for="card in sensorCards"
+          :key="card.title"
+          :title="card.title"
+          :value="card.value"
+          :status="card.status"
+          :icon="card.icon"
+          :icon-class="card.iconClass"
+        />
+      </section>
+
+      <section class="mt-8 grid gap-4 lg:grid-cols-2">
+        <ChartPanel title="Grafik Suhu Realtime" type="line" :points="dashboard.state.temperatureHistory" />
+        <ChartPanel title="Grafik RPM Fan" type="bar" :points="dashboard.state.rpmHistory" />
+      </section>
+
+      <section class="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <SensorStatusTable :rows="dashboard.state.sensorRows" />
+        <AlertPanel :alerts="dashboard.state.alerts" />
+      </section>
     </div>
+
+    <footer class="border-t border-hairline bg-[#fbfafa]">
+      <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-body sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <span class="font-semibold text-primary">BTSense</span>
+        <span>© 2024 BTSense IoT Infrastructure. All rights reserved.</span>
+      </div>
+    </footer>
+
+    <ExportPdfModal
+      v-if="auth.isSupervisor.value"
+      :open="showExportModal"
+      @close="showExportModal = false"
+      @exported="handleExported"
+    />
+    <EditProfileModal
+      :open="showProfileModal"
+      :user="auth.state.user"
+      :initials="auth.initials.value"
+      @close="showProfileModal = false"
+    />
   </main>
 </template>
 
 <script setup>
-import { markRaw } from "vue";
-import {
-  Activity,
-  Bell,
-  Cable,
-  DoorOpen,
-  Fan,
-  FileDown,
-  Gauge,
-  RadioTower,
-  Thermometer,
-  UserCircle,
-  Wifi,
-} from "@lucide/vue";
+import { computed, defineAsyncComponent, markRaw, onMounted, onUnmounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { Cable, DoorClosed, Fan, Gauge, Thermometer } from "lucide-vue-next";
+import AlertPanel from "../components/dashboard/AlertPanel.vue";
+import AlertToast from "../components/dashboard/AlertToast.vue";
+import AppNavbar from "../components/common/AppNavbar.vue";
+import ChartPanel from "../components/dashboard/ChartPanel.vue";
+import SensorCard from "../components/dashboard/SensorCard.vue";
+import SensorStatusTable from "../components/dashboard/SensorStatusTable.vue";
+import StatusBadge from "../components/common/StatusBadge.vue";
+import { connectSocket, onAlertNew, onDeviceStatus, onSensorNew } from "../services/socket.js";
+import { useAuthStore } from "../stores/authStore.js";
+import { useDashboardStore } from "../stores/dashboardStore.js";
+import { compactNumber } from "../utils/formatters.js";
+import { getStatusLabel } from "../utils/status.js";
 
-const statusCards = [
-  {
-    label: "Suhu Rak",
-    value: "34.8 C",
-    status: "Normal",
-    statusColor: "text-green",
-    icon: markRaw(Thermometer),
-    iconColor: "text-blueInfo",
-  },
-  {
-    label: "Status Fan",
-    value: "Running",
-    status: "Stabil",
-    statusColor: "text-green",
-    icon: markRaw(Fan),
-    iconColor: "text-green",
-  },
-  {
-    label: "RPM Fan",
-    value: "1,820",
-    status: "Dalam batas aman",
-    statusColor: "text-body",
-    icon: markRaw(Gauge),
-    iconColor: "text-purple",
-  },
-  {
-    label: "Status Kabel",
-    value: "Connected",
-    status: "Tidak ada gangguan",
-    statusColor: "text-green",
-    icon: markRaw(Cable),
-    iconColor: "text-blue",
-  },
-  {
-    label: "Status Pintu",
-    value: "Closed",
-    status: "Terkunci",
-    statusColor: "text-body",
-    icon: markRaw(DoorOpen),
-    iconColor: "text-orange",
-  },
-];
+const ExportPdfModal = defineAsyncComponent(() => import("../components/dashboard/ExportPdfModal.vue"));
+const EditProfileModal = defineAsyncComponent(() => import("../components/profile/EditProfileModal.vue"));
 
-const sensorRows = [
-  {
-    time: "10:24:12",
-    device: "BTS-JKT-001",
-    temperature: "34.8 C",
-    fan: "running",
-    rpm: "1,820",
-    cable: "connected",
-    door: "closed",
-    status: "normal",
-    badgeClass: "bg-green/10 text-green",
-  },
-  {
-    time: "10:23:42",
-    device: "BTS-JKT-001",
-    temperature: "42.3 C",
-    fan: "running",
-    rpm: "1,760",
-    cable: "connected",
-    door: "closed",
-    status: "warning",
-    badgeClass: "bg-yellow/15 text-[#9a6500]",
-  },
-  {
-    time: "10:23:05",
-    device: "BTS-JKT-001",
-    temperature: "36.1 C",
-    fan: "running",
-    rpm: "1,810",
-    cable: "connected",
-    door: "open",
-    status: "warning",
-    badgeClass: "bg-yellow/15 text-[#9a6500]",
-  },
-];
+const router = useRouter();
+const auth = useAuthStore();
+const dashboard = useDashboardStore();
+const showExportModal = ref(false);
+const showProfileModal = ref(false);
+let cleanupSocket = [];
 
-const alerts = [
-  {
-    type: "Temperature",
-    severity: "warning",
-    message: "Suhu rak melewati ambang batas warning pada BTS-JKT-001.",
-    time: "2 menit lalu",
-    badgeClass: "bg-yellow/15 text-[#9a6500]",
-  },
-  {
-    type: "Door",
+const sensorCards = computed(() => {
+  const summary = dashboard.state.sensorSummary;
+
+  return [
+    {
+      title: "Suhu Rak",
+      value: `${summary.temperature.value}${summary.temperature.unit}`,
+      status: getStatusLabel(summary.temperature.status),
+      icon: markRaw(Thermometer),
+      iconClass: "text-purple",
+    },
+    {
+      title: "Status Fan",
+      value: getStatusLabel(summary.fan.status),
+      status: "Normal",
+      icon: markRaw(Fan),
+      iconClass: "text-mute",
+    },
+    {
+      title: "RPM Fan",
+      value: `${compactNumber(summary.fan.rpm)} RPM`,
+      status: getStatusLabel(summary.fan.rpmStatus),
+      icon: markRaw(Gauge),
+      iconClass: "text-purple",
+    },
+    {
+      title: "Status Kabel",
+      value: getStatusLabel(summary.cable.status),
+      status: "Aman",
+      icon: markRaw(Cable),
+      iconClass: "text-mute",
+    },
+    {
+      title: "Status Pintu",
+      value: getStatusLabel(summary.door.status),
+      status: "Aman",
+      icon: markRaw(DoorClosed),
+      iconClass: "text-purple",
+    },
+  ];
+});
+
+const openExport = () => {
+  if (auth.isSupervisor.value) {
+    showExportModal.value = true;
+  }
+};
+
+const handleExported = () => {
+  dashboard.addAlert({
+    title: "Export PDF",
+    message: "Laporan sensor berhasil disiapkan.",
     severity: "info",
-    message: "Pintu panel sempat terbuka saat pembacaan sensor terakhir.",
-    time: "7 menit lalu",
-    badgeClass: "bg-blueInfo/10 text-blueInfo",
-  },
-  {
-    type: "Fan",
-    severity: "critical",
-    message: "Simulasi penurunan RPM fan terdeteksi pada sensor dummy.",
-    time: "18 menit lalu",
-    badgeClass: "bg-red/10 text-red",
-  },
-];
+    type: "report",
+  });
+};
+
+const handleLogout = async () => {
+  await auth.logout();
+  router.push("/login");
+};
+
+onMounted(() => {
+  dashboard.loadDashboard();
+  connectSocket();
+
+  cleanupSocket = [
+    onSensorNew(dashboard.applySensorPayload),
+    onAlertNew(dashboard.addAlert),
+    onDeviceStatus((payload) => {
+      dashboard.state.device.status = payload.status || dashboard.state.device.status;
+    }),
+  ];
+});
+
+onUnmounted(() => {
+  cleanupSocket.forEach((cleanup) => cleanup());
+});
 </script>

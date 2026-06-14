@@ -2,8 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: Inter, Arial, sans-serif;
-  background: #ffffff;
+  background: #f4f7fa;
   color: #080808;
+}
+
+button,
+input,
+select {
+  font: inherit;
 }

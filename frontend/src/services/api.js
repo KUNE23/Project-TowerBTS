@@ -5,6 +5,7 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000,
 });
 
 api.interceptors.request.use((config) => {
@@ -16,5 +17,13 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message = error.response?.data?.message || error.message || "Request failed";
+    return Promise.reject({ ...error, message });
+  },
+);
 
 export default api;
