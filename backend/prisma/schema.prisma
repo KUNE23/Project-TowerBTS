@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  technician
+  supervisor
+}
+
+enum DeviceStatus {
+  online
+  offline
+}
+
+enum SensorStatus {
+  normal
+  warning
+  critical
+}
+
+enum FanStatus {
+  running
+  stopped
+}
+
+enum CableStatus {
+  connected
+  cut
+}
+
+enum DoorStatus {
+  closed
+  open
+}
+
+enum AlertType {
+  temperature
+  fan
+  cable
+  door
+}
+
+enum AlertSeverity {
+  info
+  warning
+  critical
+}
+
+enum AlertStatus {
+  unresolved
+  resolved
+}
+
+enum FileFormat {
+  pdf
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(100)
+  email         String         @unique @db.VarChar(100)
+  password      String         @db.VarChar(255)
+  role          UserRole       @default(technician)
+  phone         String?        @db.VarChar(20)
+  exportReports ExportReport[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Device {
+  id            Int            @id @default(autoincrement())
+  deviceCode    String         @unique @map("device_code") @db.VarChar(50)
+  deviceName    String         @map("device_name") @db.VarChar(100)
+  status        DeviceStatus   @default(offline)
+  lastSeen      DateTime?      @map("last_seen")
+  sensorLogs    SensorLog[]
+  alerts        Alert[]
+  exportReports ExportReport[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@map("devices")
+}
+
+model SensorLog {
+  id                Int          @id @default(autoincrement())
+  deviceId          Int          @map("device_id")
+  temperature       Float?
+  temperatureStatus SensorStatus @default(normal) @map("temperature_status")
+  fanStatus         FanStatus    @default(stopped) @map("fan_status")
+  fanRpm            Int          @default(0) @map("fan_rpm")
+  cableStatus       CableStatus  @default(connected) @map("cable_status")
+  doorStatus        DoorStatus   @default(closed) @map("door_status")
+  overallStatus     SensorStatus @default(normal) @map("overall_status")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  device            Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  alerts            Alert[]
+
+  @@map("sensor_logs")
+}
+
+model Alert {
+  id          Int           @id @default(autoincrement())
+  deviceId    Int           @map("device_id")
+  sensorLogId Int           @map("sensor_log_id")
+  alertType   AlertType     @map("alert_type")
+  message     String        @db.Text
+  severity    AlertSeverity
+  status      AlertStatus   @default(unresolved)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  resolvedAt  DateTime?     @map("resolved_at")
+
+  device      Device        @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  sensorLog   SensorLog     @relation(fields: [sensorLogId], references: [id], onDelete: Cascade)
+
+  @@map("alerts")
+}
+
+model ExportReport {
+  id         Int        @id @default(autoincrement())
+  userId     Int        @map("user_id")
+  deviceId   Int        @map("device_id")
+  startDate  DateTime   @map("start_date") @db.Date
+  endDate    DateTime   @map("end_date") @db.Date
+  fileFormat FileFormat @default(pdf) @map("file_format")
+  fileUrl    String?    @map("file_url") @db.VarChar(255)
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device     Device     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@map("export_reports")
+}
