@@ -86,6 +86,7 @@ model Device {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
 
+  @@index([status])
   @@map("devices")
 }
 
@@ -104,6 +105,8 @@ model SensorLog {
   device            Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   alerts            Alert[]
 
+  @@index([deviceId, createdAt])
+  @@index([overallStatus])
   @@map("sensor_logs")
 }
 
@@ -121,6 +124,8 @@ model Alert {
   device      Device        @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   sensorLog   SensorLog     @relation(fields: [sensorLogId], references: [id], onDelete: Cascade)
 
+  @@index([deviceId, status, alertType])
+  @@index([severity, createdAt])
   @@map("alerts")
 }
 
@@ -137,5 +142,7 @@ model ExportReport {
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   device     Device     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
+  @@index([userId, createdAt])
+  @@index([deviceId, startDate, endDate])
   @@map("export_reports")
 }

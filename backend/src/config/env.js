@@ -9,4 +9,5 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET || "secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
+  deviceApiKey: process.env.DEVICE_API_KEY || "change_this_device_key",
 };

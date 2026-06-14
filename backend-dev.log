@@ -10,3 +10,122 @@
 ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 BTSense API running on port 5000
 [0mGET /api/health [32m200[0m 11.149 ms - 51[0m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (6) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (6) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (6) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (6) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (6) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (6) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+BTSense API running on port 5000
+GET /api/health 200 5.736 ms
+POST /register 201 818.235 ms
+POST /login 200 354.912 ms
+GET /profile 200 9.743 ms
+POST /api/sensor-logs 401 1.171 ms
+GET / 200 59.801 ms
+GET / 200 12.821 ms
+GET /latest 200 12.127 ms
+GET /api/export-reports/pdf 404 78.618 ms
+POST /register 201 312.130 ms
+POST /login 200 319.981 ms
+POST / 201 32.871 ms
+GET /pdf 200 56.295 ms
+GET /api/alerts 401 0.409 ms
+POST /register 201 321.898 ms
+POST /login 200 444.098 ms
+POST / 201 57.443 ms
+GET / 200 20.537 ms
+POST / 201 16.807 ms
+GET / 200 15.625 ms
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+BTSense API running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+BTSense API running on port 5000
+POST /api/auth/register 201 709.561 ms
+POST /api/auth/login 200 443.751 ms
+GET /api/health 200 0.799 ms
+POST /api/sensor-logs 201 33.669 ms
+GET /api/dashboard/latest 200 77.848 ms
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+BTSense API running on port 5000
