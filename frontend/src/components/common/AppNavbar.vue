@@ -6,11 +6,6 @@
           <p class="text-2xl font-semibold tracking-[-0.02em] text-primary">BTSense</p>
           <p class="text-xs font-medium uppercase tracking-[0.14em] text-mute">Network Operations</p>
         </RouterLink>
-        <nav class="hidden items-center gap-1 text-sm text-body md:flex">
-          <RouterLink class="border-b-2 border-primary px-2 py-2 font-medium text-primary" to="/dashboard">
-            Dashboard
-          </RouterLink>
-        </nav>
       </div>
 
       <div class="flex flex-1 items-center justify-end gap-3">
@@ -26,10 +21,6 @@
             <Download class="h-4 w-4" />
           </template>
         </BaseButton>
-
-        <button class="rounded-sm border border-transparent p-2 text-body hover:border-hairline hover:bg-white" type="button">
-          <Bell class="h-5 w-5" />
-        </button>
 
         <div class="relative">
           <button
@@ -60,7 +51,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { Bell, Download, LogOut, Search } from "lucide-vue-next";
+import { Download, LogOut, Search } from "lucide-vue-next";
 import BaseButton from "./BaseButton.vue";
 import StatusBadge from "./StatusBadge.vue";
 

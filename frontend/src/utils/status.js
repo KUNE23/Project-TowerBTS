@@ -13,18 +13,26 @@ export const statusLabel = {
   safe: "Aman",
   warning: "Warning",
   critical: "Critical",
+  open: "Terbuka",
+  cut: "Putus",
+  stopped: "Stopped",
+  offline: "Offline",
 };
 
 export const statusTone = {
-  normal: "purple",
-  stable: "purple",
-  running: "purple",
-  connected: "purple",
-  closed: "purple",
-  safe: "purple",
+  normal: "green",
+  stable: "green",
+  running: "green",
+  connected: "green",
+  closed: "green",
+  safe: "green",
   warning: "yellow",
+  open: "yellow",
   critical: "red",
-  online: "purple",
+  cut: "red",
+  stopped: "red",
+  offline: "red",
+  online: "green",
   info: "gray",
 };
 

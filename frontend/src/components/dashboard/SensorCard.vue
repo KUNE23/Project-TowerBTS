@@ -5,11 +5,13 @@
       <component :is="icon" class="h-5 w-5" :class="iconClass" />
     </div>
     <p class="text-2xl font-semibold tracking-[-0.02em] text-primary">{{ value }}</p>
-    <p class="mt-2 text-sm text-purple">{{ status }}</p>
+    <StatusBadge class="mt-3" :label="status" :tone="statusTone" dot />
   </article>
 </template>
 
 <script setup>
+import StatusBadge from "../common/StatusBadge.vue";
+
 defineProps({
   title: {
     type: String,
@@ -30,6 +32,10 @@ defineProps({
   iconClass: {
     type: String,
     default: "text-purple",
+  },
+  statusTone: {
+    type: String,
+    default: "gray",
   },
 });
 </script>

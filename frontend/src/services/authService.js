@@ -9,16 +9,8 @@ const fallbackUser = {
 };
 
 export const login = async (payload) => {
-  try {
-    const { data } = await api.post("/auth/login", payload);
-    return data;
-  } catch {
-    return {
-      success: true,
-      token: "btsense-demo-token",
-      user: fallbackUser,
-    };
-  }
+  const { data } = await api.post("/auth/login", payload);
+  return data;
 };
 
 export const getProfile = async () => {

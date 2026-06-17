@@ -1,114 +1,252 @@
 import { computed, reactive } from "vue";
-import { formatTime } from "../utils/formatters.js";
+import { compactNumber, formatTime } from "../utils/formatters.js";
 import * as dashboardService from "../services/dashboardService.js";
 
 const state = reactive({
   device: {
-    code: "BTS-DEMO-001",
-    status: "online",
+    id: null,
+    code: "-",
+    status: "offline",
   },
   sensorSummary: {
     temperature: {
-      value: 36.8,
+      value: null,
       unit: "°C",
-      status: "normal",
+      status: "-",
     },
     fan: {
-      status: "running",
-      rpm: 1800,
-      rpmStatus: "stable",
+      status: "-",
+      rpm: null,
+      rpmStatus: "-",
     },
     cable: {
-      status: "connected",
+      status: "-",
     },
     door: {
-      status: "closed",
+      status: "-",
     },
-    overallStatus: "normal",
-    lastUpdated: "10:31:24",
+    overallStatus: "-",
+    lastUpdated: "-",
   },
-  sensorRows: [
-    { id: 1, sensor: "Suhu Rak 1", value: "36.8°C", status: "normal", updatedAt: "10:31:24" },
-    { id: 2, sensor: "Fan Exhaust A", value: "1800 RPM", status: "stable", updatedAt: "10:31:23" },
-    { id: 3, sensor: "Power Cable Main", value: "Connect", status: "normal", updatedAt: "10:30:15" },
-    { id: 4, sensor: "Main Door", value: "Tertutup", status: "safe", updatedAt: "10:25:00" },
-  ],
-  temperatureHistory: [
-    { label: "10:00", value: 37.2 },
-    { label: "10:05", value: 38.1 },
-    { label: "10:10", value: 38.4 },
-    { label: "10:15", value: 37.6 },
-    { label: "10:20", value: 36.2 },
-    { label: "10:25", value: 35.4 },
-    { label: "10:30", value: 36.1 },
-    { label: "10:35", value: 38.8 },
-    { label: "10:40", value: 42.6 },
-    { label: "10:45", value: 45.0 },
-    { label: "10:50", value: 39.0 },
-  ],
-  rpmHistory: [
-    { label: "10:00", value: 1450 },
-    { label: "10:05", value: 1720 },
-    { label: "10:10", value: 1980 },
-    { label: "10:15", value: 1320 },
-    { label: "10:20", value: 1800 },
-    { label: "10:25", value: 2050 },
-    { label: "10:30", value: 1420 },
-    { label: "10:35", value: 1900 },
-    { label: "10:40", value: 1600 },
-  ],
-  alerts: [
-    {
-      id: 1,
-      type: "cable",
-      title: "Kabel Putus",
-      message: "Sensor Power Cable Main tidak merespons. Segera periksa koneksi fisik.",
-      severity: "critical",
-      createdAt: "10:30:15",
-    },
-    {
-      id: 2,
-      type: "door",
-      title: "Pintu Terbuka",
-      message: "Pintu utama terdeteksi terbuka lebih dari 5 menit.",
-      severity: "warning",
-      createdAt: "10:15:00",
-    },
-    {
-      id: 3,
-      type: "fan",
-      title: "Fan Restarted",
-      message: "Sistem berhasil merestart Fan Exhaust A secara otomatis.",
-      severity: "info",
-      createdAt: "09:45:00",
-    },
-  ],
+  sensorRows: [],
+  temperatureHistory: [],
+  rpmHistory: [],
+  alerts: [],
   toasts: [],
   loading: false,
+  refreshing: false,
+  error: "",
+  hasLoaded: false,
 });
 
+const firstDefined = (...values) => values.find((value) => value !== undefined && value !== null && value !== "");
+
+const normalizeStatus = (value, fallback = "-") => {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  return String(value).trim().toLowerCase();
+};
+
+const normalizeTime = (value) => {
+  if (!value) {
+    return formatTime();
+  }
+
+  if (typeof value === "string") {
+    const timestamp = Date.parse(value);
+    return Number.isNaN(timestamp) ? value : formatTime(new Date(timestamp));
+  }
+
+  return formatTime(value);
+};
+
+const asArray = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (Array.isArray(value?.data)) {
+    return value.data;
+  }
+
+  if (Array.isArray(value?.logs)) {
+    return value.logs;
+  }
+
+  if (Array.isArray(value?.sensorLogs)) {
+    return value.sensorLogs;
+  }
+
+  if (Array.isArray(value?.data?.data)) {
+    return value.data.data;
+  }
+
+  if (Array.isArray(value?.data?.logs)) {
+    return value.data.logs;
+  }
+
+  return [];
+};
+
+const unwrapPayload = (payload) => payload?.data ?? payload ?? {};
+
+const pickLatestLog = (payload) => {
+  const body = unwrapPayload(payload);
+
+  return (
+    body.latestLog ||
+    body.sensorLog ||
+    body.summary ||
+    body.latestSensorLog ||
+    body.latest ||
+    body.log ||
+    asArray(body)[0] ||
+    null
+  );
+};
+
+const pickDevice = (payload, log = {}) => {
+  const body = unwrapPayload(payload);
+  const device = body.device || body.latestDevice || body.deviceLatest || log.device || {};
+
+  return {
+    id: firstDefined(device.id, log.device_id, log.deviceId, null),
+    code: firstDefined(device.code, device.deviceCode, device.device_code, device.deviceName, device.name, device.id, log.device_code, log.deviceId, "-"),
+    status: normalizeStatus(firstDefined(device.status, log.device_status), "online"),
+  };
+};
+
+const normalizeSensorLog = (log = {}) => {
+  const temperature = firstDefined(log.temperature, log.temperature_value, log.temp, log.suhu);
+  const fanRpm = firstDefined(log.fan_rpm, log.fanRPM, log.rpm, log.fan?.rpm);
+  const updatedAt = firstDefined(log.updated_at, log.updatedAt, log.created_at, log.createdAt, log.timestamp, log.time);
+  const temperatureStatus = normalizeStatus(
+    firstDefined(log.temperature_status, log.temperatureStatus, log.temp_status, log.status_temperature),
+    normalizeStatus(log.status, "normal"),
+  );
+  const fanStatus = normalizeStatus(firstDefined(log.fan_status, log.fanStatus, log.fan?.status), "-");
+  const fanRpmStatus = normalizeStatus(firstDefined(log.fan_rpm_status, log.fanRpmStatus, log.rpm_status), fanStatus);
+  const cableStatus = normalizeStatus(firstDefined(log.cable_status, log.cableStatus, log.cable?.status), "-");
+  const doorStatus = normalizeStatus(firstDefined(log.door_status, log.doorStatus, log.door?.status), "-");
+  const overallStatus = normalizeStatus(
+    firstDefined(log.overall_status, log.overallStatus, log.system_status, log.status),
+    temperatureStatus,
+  );
+
+  return {
+    id: firstDefined(log.id, log._id, updatedAt, Date.now()),
+    temperature,
+    temperatureStatus,
+    fanStatus,
+    fanRpm,
+    fanRpmStatus,
+    cableStatus,
+    doorStatus,
+    overallStatus,
+    updatedAt: normalizeTime(updatedAt),
+  };
+};
+
+const normalizeAlert = (alert = {}) => ({
+  id: firstDefined(alert.id, alert._id, alert.created_at, alert.createdAt, Date.now()),
+  type: firstDefined(alert.type, alert.category, "info"),
+  title: firstDefined(alert.title, alert.name, "Alert Terbaru"),
+  message: firstDefined(alert.message, alert.description, alert.detail, "Alert diterima dari sistem."),
+  severity: normalizeStatus(firstDefined(alert.severity, alert.level, alert.status), "info"),
+  createdAt: normalizeTime(firstDefined(alert.created_at, alert.createdAt, alert.timestamp)),
+});
+
+const formatTemperature = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return "-";
+  }
+
+  return `${value}°C`;
+};
+
+const buildRows = (logs) =>
+  logs.map((log, index) => {
+    const item = normalizeSensorLog(log);
+
+    return {
+      ...item,
+      id: item.id || index,
+      temperatureLabel: formatTemperature(item.temperature),
+      fanRpmLabel: item.fanRpm === undefined || item.fanRpm === null || item.fanRpm === "" ? "-" : `${compactNumber(item.fanRpm)} RPM`,
+    };
+  });
+
+const applyLatestLog = (log, sourcePayload) => {
+  if (!log) {
+    return;
+  }
+
+  const item = normalizeSensorLog(log);
+  state.device = pickDevice(sourcePayload, log);
+  state.sensorSummary = {
+    temperature: {
+      value: item.temperature,
+      unit: "°C",
+      status: item.temperatureStatus,
+    },
+    fan: {
+      status: item.fanStatus,
+      rpm: item.fanRpm,
+      rpmStatus: item.fanRpmStatus,
+    },
+    cable: {
+      status: item.cableStatus,
+    },
+    door: {
+      status: item.doorStatus,
+    },
+    overallStatus: item.overallStatus,
+    lastUpdated: item.updatedAt,
+  };
+};
+
+const applyLogs = (logs) => {
+  state.sensorRows = buildRows(logs).slice(0, 10);
+  const chartRows = [...state.sensorRows].reverse();
+
+  state.temperatureHistory = chartRows
+    .filter((row) => Number.isFinite(Number(row.temperature)))
+    .map((row) => ({ label: row.updatedAt, value: Number(row.temperature) }));
+
+  state.rpmHistory = chartRows
+    .filter((row) => Number.isFinite(Number(row.fanRpm)))
+    .map((row) => ({ label: row.updatedAt, value: Number(row.fanRpm) }));
+};
+
+const getErrorMessage = (error) => {
+  if (error?.response?.status === 401) {
+    const hasToken = Boolean(localStorage.getItem("token"));
+    return hasToken
+      ? "Akses ditolak. Token login tidak valid atau sudah kedaluwarsa."
+      : "Endpoint dashboard membutuhkan login. Silakan login agar token Authorization dikirim.";
+  }
+
+  if (error?.code === "ERR_NETWORK") {
+    return "Backend tidak bisa diakses. Pastikan server API berjalan di VITE_API_URL.";
+  }
+
+  return error?.message || "Gagal mengambil data dashboard.";
+};
+
 export const useDashboardStore = () => {
-  const latestUpdate = computed(() => state.sensorSummary.lastUpdated || formatTime());
+  const latestUpdate = computed(() => state.sensorSummary.lastUpdated || "-");
 
   const applySensorPayload = (payload = {}) => {
-    state.sensorSummary = {
-      ...state.sensorSummary,
-      ...payload,
-      lastUpdated: payload.lastUpdated || formatTime(),
-    };
+    const log = pickLatestLog(payload) || payload;
+    applyLatestLog(log, payload);
   };
 
   const addAlert = (alert) => {
-    const nextAlert = {
-      id: alert.id || Date.now(),
-      type: alert.type || "info",
-      title: alert.title || "Alert Baru",
-      message: alert.message || "Alert baru diterima dari sistem.",
-      severity: alert.severity || "info",
-      createdAt: alert.createdAt || formatTime(),
-    };
+    const nextAlert = normalizeAlert(alert);
 
-    state.alerts = [nextAlert, ...state.alerts].slice(0, 6);
+    state.alerts = [nextAlert, ...state.alerts.filter((item) => item.id !== nextAlert.id)].slice(0, 6);
     state.toasts = [nextAlert, ...state.toasts].slice(0, 3);
 
     window.setTimeout(() => {
@@ -117,23 +255,57 @@ export const useDashboardStore = () => {
   };
 
   const loadDashboard = async () => {
-    state.loading = true;
+    state.loading = !state.hasLoaded;
+    state.refreshing = state.hasLoaded;
+    state.error = "";
 
     try {
-      const [latest, alerts] = await Promise.allSettled([
-        dashboardService.getLatestSensorData(),
-        dashboardService.getLatestAlerts(),
-      ]);
+      let latestPayload = null;
+      let logsPayload = null;
 
-      if (latest.status === "fulfilled" && latest.value?.data) {
-        applySensorPayload(latest.value.data);
+      try {
+        latestPayload = await dashboardService.getDashboardLatest();
+      } catch (error) {
+        latestPayload = null;
       }
 
-      if (alerts.status === "fulfilled" && Array.isArray(alerts.value?.data)) {
-        state.alerts = alerts.value.data;
+      try {
+        logsPayload = await dashboardService.getSensorLogs({ page: 1, limit: 10 });
+      } catch (error) {
+        if (!latestPayload) {
+          throw error;
+        }
       }
+
+      const logs = asArray(unwrapPayload(logsPayload));
+      if (logs.length > 0) {
+        applyLogs(logs);
+      }
+
+      const latestLog = pickLatestLog(latestPayload) || logs[0];
+      applyLatestLog(latestLog, latestPayload || logsPayload);
+
+      try {
+        const alertsPayload = await dashboardService.getLatestAlerts();
+        const alerts = asArray(unwrapPayload(alertsPayload));
+
+        if (alerts.length > 0) {
+          state.alerts = alerts.map(normalizeAlert).slice(0, 6);
+        } else if (alertsPayload && !Array.isArray(alertsPayload)) {
+          const alert = pickLatestLog(alertsPayload);
+          state.alerts = alert ? [normalizeAlert(alert)] : [];
+        }
+      } catch {
+        state.alerts = [];
+      }
+
+      state.hasLoaded = true;
+    } catch (error) {
+      state.error = getErrorMessage(error);
+      state.hasLoaded = true;
     } finally {
       state.loading = false;
+      state.refreshing = false;
     }
   };
 

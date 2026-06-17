@@ -3,7 +3,11 @@
     <div class="mb-4 border-b border-hairline pb-3">
       <h2 class="text-sm font-semibold text-primary">Alert Terbaru</h2>
     </div>
-    <div class="space-y-2">
+    <div v-if="loading" class="py-10 text-center text-sm text-body">Memuat alert...</div>
+    <div v-else-if="alerts.length === 0" class="py-10 text-center text-sm text-body">
+      Tidak ada alert terbaru.
+    </div>
+    <div v-else class="space-y-2">
       <article v-for="alert in alerts" :key="alert.id" class="border p-3" :class="alertClass(alert.severity)">
         <div class="mb-1 flex items-start justify-between gap-3">
           <div class="flex items-center gap-1.5">
@@ -28,6 +32,10 @@ defineProps({
   alerts: {
     type: Array,
     default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
 });
 

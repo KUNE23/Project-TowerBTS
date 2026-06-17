@@ -1,12 +1,12 @@
 import api from "./api.js";
 
-export const getLatestSensorData = async () => {
-  const { data } = await api.get("/sensor-logs/latest");
+export const getDashboardLatest = async () => {
+  const { data } = await api.get("/dashboard/latest");
   return data;
 };
 
-export const getSensorHistory = async (params = {}) => {
-  const { data } = await api.get("/sensor-logs/history", { params });
+export const getSensorLogs = async (params = {}) => {
+  const { data } = await api.get("/sensor-logs", { params });
   return data;
 };
 
@@ -15,19 +15,14 @@ export const getLatestAlerts = async () => {
   return data;
 };
 
-export const exportSensorReport = async (payload) => {
-  try {
-    const { data } = await api.get("/export-reports/pdf", {
-      params: payload,
-      responseType: "blob",
-    });
+export const getLatestSensorData = getDashboardLatest;
+export const getSensorHistory = getSensorLogs;
 
-    return data;
-  } catch {
-    return {
-      success: true,
-      message: "Export laporan dummy berhasil dibuat.",
-      payload,
-    };
-  }
+export const exportSensorReport = async (payload) => {
+  const response = await api.get("/export-reports/pdf", {
+    params: payload,
+    responseType: "blob",
+  });
+
+  return response;
 };

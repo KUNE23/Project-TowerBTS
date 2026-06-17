@@ -2,9 +2,14 @@ import { computed, reactive } from "vue";
 import * as authService from "../services/authService.js";
 
 const savedToken = localStorage.getItem("token");
+const initialToken = savedToken === "btsense-demo-token" ? "" : savedToken;
+
+if (savedToken === "btsense-demo-token") {
+  localStorage.removeItem("token");
+}
 
 const state = reactive({
-  token: savedToken,
+  token: initialToken,
   user: {
     id: 1,
     name: "Budi Santoso",
@@ -40,11 +45,13 @@ export const useAuthStore = () => {
 
       if (state.token) {
         localStorage.setItem("token", state.token);
+      } else {
+        throw new Error("Login berhasil, tetapi token tidak ditemukan di response backend.");
       }
 
       return result;
     } catch (error) {
-      state.error = error.message;
+      state.error = error.message || "Login gagal. Periksa koneksi backend dan kredensial.";
       throw error;
     } finally {
       state.loading = false;
